@@ -114,7 +114,7 @@ are trademarks of Caucho Technology.
 		echo "</form>";
 		if($_POST[sub]){
 			if($_POST[text] == "admin" && $_POST[pwd] == "admin"){
-				echo "<script>txt='admin';alert('you are as ' + txt);</script>"
+				echo "<script>txt='admin';alert('you are as ' + txt);</script>";
 										
 				}
 			else{
