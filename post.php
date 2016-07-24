@@ -1,0 +1,1 @@
+<?php	echo $_POST["MyName"].$_POST["MyAge"];?>
