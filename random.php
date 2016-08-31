@@ -28,13 +28,30 @@ class Mine{
           $this->Array[$i][$j]=0;
         }
   }
-
 }
-$MineA=new Mine([10,10],10);
+/*$MineA=new Mine([10,10],10);
 for($i=0;$i<$MineA->MineDim[0];$i++){
   for($j=0;$j<$MineA->MineDim[1];$j++){
       echo $MineA->Array[$i][$j].' ';
   }
   echo "<br>";
+}*/
+class MineThread extends Thread{
+  public $MineDim;
+  public $MineNum;
+  public $MineIns;
+  public function __construct($MineDim,$MineNum){
+    $this->MineIns=new Mine($MineDim,$MineNum);
+  }
+  public function run(){
+    for($i=0;$i<$this->MineIns->MineDim[0];$i++){
+      for($j=0;$j<$this->MineIns->MineDim[1];$j++){
+          echo $this->MineIns->Array[$i][$j].' ';
+      }
+      echo "<br>";
+  }
+  }
 }
+$MineThread1=new MineThread([5,5],5);
+$MineThread1->start();
 ?>
