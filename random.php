@@ -1,7 +1,11 @@
 <?php
 class Mine{
   public $Array=[];
+  public $MineDim;
+  public $MineNum;
   public function __construct($MineDim,$MineNum){
+    $this->MineDim=$MineDim;
+    $this->MineNum=$MineNum;
     $RandList=[];
     $MaxRow=$MineDim[0];
     $MaxCol=$MineDim[1];
@@ -27,8 +31,8 @@ class Mine{
 
 }
 $MineA=new Mine([10,10],10);
-for($i=0;$i<10;$i++){
-  for($j=0;$j<10;$j++){
+for($i=0;$i<$MineA->MineDim[0];$i++){
+  for($j=0;$j<$MineA->MineDim[1];$j++){
       echo $MineA->Array[$i][$j].' ';
   }
   echo "<br>";
