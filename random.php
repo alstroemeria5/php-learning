@@ -3,6 +3,7 @@ class Mine{
   public $Array=[];
   public $MineDim;
   public $MineNum;
+  public $ArrayString;
   public function __construct($MineDim,$MineNum){
     $this->MineDim=$MineDim;
     $this->MineNum=$MineNum;
@@ -27,31 +28,91 @@ class Mine{
         else {
           $this->Array[$i][$j]=0;
         }
+      $this->StringLize($this->Array,$this->MineDim,$this->MineNum);
+  }
+  public function StringLize($ArrayString,$MineDim,$MineNum){
+    $ArrayString='';
+    $MaxRow=$MineDim[0];
+    $MaxCol=$MineDim[1];
+    for($i=0;$i<$MaxRow;$i++)
+      for($j=0;$j<$MaxRow;$j++)
+        $ArrayString.=(string)$this->Array[$i][$j];
+    $this->ArrayString=$ArrayString;
+
   }
 }
-/*$MineA=new Mine([10,10],10);
-for($i=0;$i<$MineA->MineDim[0];$i++){
-  for($j=0;$j<$MineA->MineDim[1];$j++){
-      echo $MineA->Array[$i][$j].' ';
-  }
-  echo "<br>";
-}*/
+
 class MineThread extends Thread{
   public $MineDim;
   public $MineNum;
   public $MineIns;
-  public function __construct($MineDim,$MineNum){
+  protected $complete;
+  public $shm_key;
+  public function __construct($shm_key,$MineDim,$MineNum){
+    $this->shm_key=$shm_key;
     $this->MineIns=new Mine($MineDim,$MineNum);
+    $this->complete=false;
+  }
+  public function isGarbage() {
+      return $this->complete;
   }
   public function run(){
-    for($i=0;$i<$this->MineIns->MineDim[0];$i++){
-      for($j=0;$j<$this->MineIns->MineDim[1];$j++){
-          echo $this->MineIns->Array[$i][$j].' ';
-      }
-      echo "<br>";
+
+  $shm_id = shmop_open($this->shm_key, "c", 0666, strlen($this->MineIns->ArrayString));
+
+  if(!$shm_id)
+  {
+      echo "Couldn't create shared memory segment\n";
   }
+
+  // Get the size of shared memory block
+  $shm_size = shmop_size($shm_id);
+  echo "SHM Block Size: ". $shm_size . " has been created.\n";
+  // Write a test string into shared memory
+  $shm_bytes_written = shmop_write($shm_id, $this->MineIns->ArrayString, 0);
+
+  if($shm_bytes_written != strlen($this->MineIns->ArrayString))
+  {
+
+      echo "Couldn't write the entire length of data\n";
+  }
+
+
+    sleep(5);
+  $this->complete=true;
   }
 }
-$MineThread1=new MineThread([5,5],5);
-$MineThread1->start();
+
+$pool=new Pool(10,worker::class);
+$MineThreadArray=Array();
+for($i=0;$i<5;$i++){
+array_push($MineThreadArray,new MineThread($i+1,[5*($i+1),5*($i+1)],10*($i+1)));
+}
+for($i=0;$i<5;$i++){
+$pool->submit($MineThreadArray[$i]);
+}
+$pool->shutdown();
+
+for($i=0;$i<5;$i++){
+$shm_id=shmop_open($i+1,"a",0666,strlen($MineThreadArray[$i]->MineIns->ArrayString));
+$my_string = shmop_read($shm_id, 0, strlen($MineThreadArray[$i]->MineIns->ArrayString));
+
+if(!$my_string)
+{
+    echo "Couldn't read from shared memory block\n";
+    echo $i;
+}
+
+echo "The data inside shared memory was: ".$my_string."\n";
+
+// Delete the block and close the shared memory segment
+
+if(!shmop_delete($shm_id))
+{
+    echo "Couldn't mark shared memory block for deletion.";
+}
+
+  shmop_close($shm_id);
+}
+
 ?>
